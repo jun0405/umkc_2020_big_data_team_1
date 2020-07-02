@@ -9,24 +9,28 @@ import java.util.*;
 
 	public class PROJECT1 {
 
-	    //Mapper Class
+	  //Map Phase
 	    public static class FMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 	        private Text w = new Text();
 
 	        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-	            String[] ip = value.toString().split("-"); //Splitting the input "-"
+	            //Split data line by line
+	        	//The first part as user name, second part is friend of user.
+	        	String[] ip = value.toString().split("-"); 
 	            if (ip.length == 2) {
-	                String friend1 = ip[0]; //This line is written to get the usernames of people
-	                List<String> values = Arrays.asList(ip[1].split(",")); //Splitting of friends based on ','
+	            	//Get the user
+	                String friend1 = ip[0]; 
+	                //Split user friend based on ','
+	                List<String> values = Arrays.asList(ip[1].split(",")); 
+	                //Group friends of each user
 	                for (String friend2 : values)
 	                {
-	                    //Getting each friend's value and grouping
-
-	                    if (Integer.parseInt(friend1) < Integer.parseInt(friend2))
-	                        w.set(friend1 + "," + friend2); //Setting word as mapping output.
+	                   if (Integer.parseInt(friend1) < Integer.parseInt(friend2))
+	                        w.set(friend1 + "," + friend2); 
 	                    else
 	                        w.set(friend2 + "," + friend1);
+	                   //mapping users with common friend 
 	                    context.write(w, new Text(ip[1]));
 	                }
 	            }
@@ -40,23 +44,29 @@ import java.util.*;
 
 	        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException
 	        {
+	        	// Create a hash set for each key-value
 	            HashMap<String, Integer> FMap = new HashMap<String, Integer>();
+	            // Create a StringBuilder for common friend
 	            StringBuilder sb = new StringBuilder();
+	            
+	            //Reducing and Regrouping all key-value pairs
 	            for (Text friends : values)
 	            {
 	                List<String> temporary = Arrays.asList(friends.toString().split(","));
 	                for (String mutual : temporary)
 	                {
 	                    if (FMap.containsKey(mutual))
+	                    	//Add friend to commom list
 	                        sb.append(mutual + ',');
 	                    else
 	                        FMap.put(mutual, 1);
 
 	                }
 	            }
-
+	            
+	            //Output
 	            res.set(new Text(sb.toString()));
-	            context.write(key, res); //Generating the reduced output.
+	            context.write(key, res); 
 	        }
 	    }
 
@@ -66,7 +76,8 @@ import java.util.*;
 	    {
 	        if (args.length != 2)
 	        {
-	            System.err.println("ERROR! INSUFFICIENT NUMBER OF ARGUMENTS"); //If the number of program arguments passed are less than two, Print this statement.
+	        	//Only allow at least two user
+	            System.err.println("ERROR!!! NOT ENOUGH INFOMATION TO EXECUTE"); 
 	            System.exit(2);
 	        }
 
